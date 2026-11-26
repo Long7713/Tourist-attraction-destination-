@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+.env
+*.db
+.pytest_cache/
+du_lieu/am_thanh/*.mp3
+du_lieu/ban_do/*.geojson
+du_lieu/nguon/

@@ -32,6 +32,9 @@ class CauHinh(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:8443"]
     # mô hình Whisper nhận diện giọng nói: tiny/base nhanh, small chính xác hơn với tiếng Việt
     mo_hinh_giong_noi: str = "base"
+    # khóa tùy chọn để nhận diện giọng nói từ file .wav khi máy chủ không cài faster-whisper
+    khoa_google_giong_noi: str | None = None
+    gemini_api_key: str | None = None
 
 
 cau_hinh = CauHinh()

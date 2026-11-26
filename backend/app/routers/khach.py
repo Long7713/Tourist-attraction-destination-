@@ -9,7 +9,7 @@ from app.database import lay_phien_csdl
 from app.models import DiemThamQuan, LichSuNghe, LuotTruyCap, NgonNgu, NoiDungDiem
 from app.schemas import GoiDongBo
 from app.services.phien_ban import tinh_phien_ban
-from app.services.qr import tao_qr_png
+from app.services.qr import tao_dia_chi_qr, tao_qr_png, xac_thuc_ma_qr
 from app.services.thiet_bi import nhan_dien_loai_thiet_bi
 from app.services.vung import diem_gan_nhat_trong_vung
 from app.thoi_gian import chuan_hoa_gio_khach
@@ -170,6 +170,18 @@ def dong_bo(goi: GoiDongBo, request: Request, phien: Session = Depends(lay_phien
         phien.rollback()
         raise HTTPException(409, "Sự kiện đã được ghi, hãy gửi lại")
     return dem
+
+
+# chức năng lấy địa chỉ mã QR truy cập hệ thống (tự động dùng IP mạng LAN và cấp mã QR dùng một lần)
+@router.get("/qr/thong-tin")
+def thong_tin_qr(request: Request):
+    return tao_dia_chi_qr(str(request.base_url).rstrip("/"))
+
+
+# chức năng xác thực mã QR dùng một lần: mỗi lần quét chỉ mở khóa một tab, đóng tab mở tab mới phải quét lại
+@router.post("/qr/xac-thuc")
+def xac_thuc_qr(du_lieu: dict):
+    return {"hop_le": xac_thuc_ma_qr(du_lieu.get("ma_qr"))}
 
 
 # chức năng mã QR chung: sinh ảnh QR cho địa chỉ được truyền vào, hệ thống không lưu địa chỉ này

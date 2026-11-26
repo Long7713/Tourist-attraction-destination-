@@ -1,8 +1,27 @@
-.venv/
-__pycache__/
-.env
-*.db
-.pytest_cache/
-du_lieu/am_thanh/*.mp3
-du_lieu/ban_do/*.geojson
-du_lieu/nguon/
+# Môi trường Python & biến bí mật
+backend/.venv/
+backend/.env
+backend/*.db
+backend/*.sql
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.pytest_cache/
+backend/cloudflared.exe
+backend/du_lieu/cloudflared.exe
+
+# Dữ liệu bản đồ & âm thanh nặng sinh ra ở local (không đẩy lên Git để tránh vượt giới hạn 100MB của GitHub)
+backend/cache/
+backend/du_lieu/nguon/
+backend/du_lieu/am_thanh/*.mp3
+backend/du_lieu/ban_do/*.geojson
+
+# Frontend Node & bản build
+BusBuss Smart City Tour/node_modules/
+BusBuss Smart City Tour/dist/
+BusBuss Smart City Tour/build/
+BusBuss Smart City Tour/.cache/
+BusBuss Smart City Tour/.vite/
+BusBuss Smart City Tour/*.tsbuildinfo
+*.log
+.DS_Store
+Thumbs.db

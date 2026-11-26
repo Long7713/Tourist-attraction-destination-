@@ -1,3 +1,5 @@
+import mimetypes
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -6,6 +8,9 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import THU_MUC_AM_THANH, THU_MUC_BAN_DO, THU_MUC_GIAO_DIEN_BUILD, cau_hinh
 from app.routers import admin, giong_noi, khach
+
+# Windows mặc định không đăng ký .geojson nên StaticFiles trả về kiểu không chứa "json", khiến frontend bỏ qua
+mimetypes.add_type("application/geo+json", ".geojson")
 
 THU_MUC_AM_THANH.mkdir(parents=True, exist_ok=True)
 THU_MUC_BAN_DO.mkdir(parents=True, exist_ok=True)

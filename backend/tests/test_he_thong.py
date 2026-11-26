@@ -73,6 +73,14 @@ def test_goi_offline_co_du_lieu(may_khach):
     assert goi["phien_ban"] > 1 and len(goi["diem"]) == 6 and "ban_do_vi_do_nam" in goi["ban_do"]
 
 
+def test_tep_geojson_ban_do_tra_ve_kieu_json(may_khach):
+    from app.config import THU_MUC_BAN_DO
+
+    if (THU_MUC_BAN_DO / "cong_vien.geojson").exists():
+        kq = may_khach.get("/du-lieu-ban-do/cong_vien.geojson")
+        assert kq.status_code == 200 and "json" in kq.headers["content-type"]
+
+
 def test_dong_bo_chong_trung_va_cap_nhat_ngon_ngu(may_khach):
     goi = {
         "truy_cap": [{"ma_su_kien": "tc-0000001", "ma_phien": "phien-000001", "ma_ngon_ngu": "vi"}],
@@ -94,6 +102,30 @@ def test_qr_chung_la_anh_png_theo_dia_chi_truyen_vao(may_khach):
     assert may_khach.get("/api/qr.png").status_code == 422
     for sai in ("khong-phai-dia-chi", "ftp://may-chu", "https://co khoang trang"):
         assert may_khach.get("/api/qr.png", params={"dia_chi": sai}).status_code == 422
+
+
+def test_thong_tin_qr_tra_ve_dia_chi_co_tham_so_qr(may_khach, monkeypatch):
+    from app.services import qr as dich_vu_qr
+
+    monkeypatch.setattr(dich_vu_qr, "_DIA_CHI_CONG_KHAI", None)
+    kq = may_khach.get("/api/qr/thong-tin", headers={"host": "localhost:8000"})
+    assert kq.status_code == 200
+    du_lieu = kq.json()
+    assert du_lieu["ip_lan"] and du_lieu["dia_chi_goc"] == f"http://{du_lieu['ip_lan']}:8000"
+    assert "/?qr=" in du_lieu["dia_chi_qr"] and du_lieu["ma_qr"]
+    # khi tunnel công khai (Cloudflare / localhost.run) đã sẵn sàng thì ưu tiên trả về địa chỉ HTTPS công khai
+    monkeypatch.setattr(dich_vu_qr, "_DIA_CHI_CONG_KHAI", "https://busbuss-demo.trycloudflare.com")
+    cong_khai = may_khach.get("/api/qr/thong-tin", headers={"host": "localhost:8000"}).json()
+    assert cong_khai["dia_chi_qr"].startswith("https://busbuss-demo.trycloudflare.com/?qr=")
+    assert cong_khai["dang_tao_tunnel"] is False
+    # khi truy cập qua tên miền Cloudflare Tunnel (proxy nội bộ HTTP), backend tự nâng lên HTTPS và ghi nhớ địa chỉ công khai
+    tu_host_cf = may_khach.get("/api/qr/thong-tin", headers={"host": "demo-busbuss.trycloudflare.com"}).json()
+    assert tu_host_cf["dia_chi_qr"].startswith("https://demo-busbuss.trycloudflare.com/?qr=")
+    assert tu_host_cf["dang_tao_tunnel"] is False
+    # mọi thiết bị cùng quét mã QR đang hiển thị đều vào được hệ thống, thiếu mã QR thì bị từ chối
+    assert may_khach.post("/api/qr/xac-thuc", json={"ma_qr": du_lieu["ma_qr"]}).json() == {"hop_le": True}
+    assert may_khach.post("/api/qr/xac-thuc", json={"ma_qr": du_lieu["ma_qr"]}).json() == {"hop_le": True}
+    assert may_khach.post("/api/qr/xac-thuc", json={"ma_qr": ""}).json() == {"hop_le": False}
 
 
 def test_api_admin_can_dang_nhap(may_khach):
@@ -231,3 +263,40 @@ def test_khong_xoa_duoc_luot_truy_cap_con_lich_su_nghe(may_khach):
         phien.execute(delete(LichSuNghe).where(LichSuNghe.luot_truy_cap_id == luot.id))
         phien.execute(delete(LuotTruyCap).where(LuotTruyCap.id == luot.id))
         phien.commit()
+
+
+def test_dich_giong_noi_tu_phat_hien_ngon_ngu_va_dich(may_khach, monkeypatch):
+    from app.services import dich
+
+    cac_lan_goi = []
+
+    def dich_gia(van_ban, ma_dich_sang, ma_nguon="auto"):
+        cac_lan_goi.append((ma_dich_sang, ma_nguon))
+        return "vi", "Hello, where is Ben Thanh Market?"
+
+    monkeypatch.setattr(dich, "phat_hien_va_dich_gtx", dich_gia)
+    kq = may_khach.post("/api/dich-giong-noi", data={
+        "van_ban_goc": "Xin chào, chợ Bến Thành ở đâu?", "ngon_ngu_dich": "en"})
+    assert kq.status_code == 200
+    du_lieu = kq.json()
+    assert du_lieu["ngon_ngu_nguon"] == "vi" and du_lieu["van_ban_goc"] == "Xin chào, chợ Bến Thành ở đâu?"
+    assert du_lieu["ban_dich"] == "Hello, where is Ben Thanh Market?"
+    assert cac_lan_goi == [("en", "vi")]
+
+    # ký tự đặc trưng nhận ra ngôn ngữ ngay, cùng ngôn ngữ đích thì giữ nguyên văn bản
+    assert dich.nhan_dien_ngon_ngu_van_ban("안녕하세요") == "ko"
+    assert dich.nhan_dien_ngon_ngu_van_ban("你好") == "zh"
+    assert dich.nhan_dien_ngon_ngu_van_ban("Привет") == "ru"
+    giu_nguyen = may_khach.post("/api/dich-giong-noi", data={"van_ban_goc": "Привет", "ngon_ngu_dich": "ru"}).json()
+    assert giu_nguyen == {"ngon_ngu_nguon": "ru", "van_ban_goc": "Привет", "ban_dich": "Привет"}
+
+    # không có văn bản lẫn file ghi âm thì trả về rỗng, ngôn ngữ dịch sai bị từ chối
+    assert may_khach.post("/api/dich-giong-noi", data={"ngon_ngu_dich": "en"}).json() == {
+        "ngon_ngu_nguon": None, "van_ban_goc": "", "ban_dich": ""}
+    assert may_khach.post("/api/dich-giong-noi", data={"van_ban_goc": "hi", "ngon_ngu_dich": "xx"}).status_code == 400
+
+    # khi người dùng chọn rõ ngôn ngữ đầu vào (ngon_ngu_nguon), backend dùng đúng ngôn ngữ đó để dịch
+    cac_lan_goi.clear()
+    chi_dinh = may_khach.post("/api/dich-giong-noi", data={
+        "van_ban_goc": "cho ben thanh", "ngon_ngu_nguon": "vi", "ngon_ngu_dich": "en"}).json()
+    assert chi_dinh["ngon_ngu_nguon"] == "vi" and cac_lan_goi == [("en", "vi")]

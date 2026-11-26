@@ -1,0 +1,139 @@
+name: BusBuss CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, backend-upload]
+  pull_request:
+    branches: [main, backend-upload]
+  workflow_dispatch:
+
+jobs:
+  backend-ci:
+    name: "CI - Kiểm thử Backend (FastAPI + Pytest)"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Lấy mã nguồn từ GitHub
+        uses: actions/checkout@v4
+
+      - name: Cài đặt Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Cài đặt thư viện Backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Chạy kiểm thử tự động (pytest)
+        run: python -m pytest -v
+
+  frontend-ci:
+    name: "CI - Kiểm tra & Build Frontend (React + Vite)"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: BusBuss Smart City Tour
+    steps:
+      - name: Lấy mã nguồn từ GitHub
+        uses: actions/checkout@v4
+
+      - name: Cài đặt Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: BusBuss Smart City Tour/package-lock.json
+
+      - name: Cài đặt thư viện Frontend
+        run: npm install --no-audit --no-fund
+
+      - name: Kiểm tra kiểu TypeScript
+        run: npx tsc --noEmit
+
+      - name: Build giao diện Production (dist)
+        run: npx vite build
+
+      - name: Lưu bản build Frontend cho bước tích hợp
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: BusBuss Smart City Tour/dist
+
+  cd-integration:
+    name: "CD - Chạy tích hợp toàn hệ thống & Đóng gói"
+    needs: [backend-ci, frontend-ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lấy mã nguồn từ GitHub
+        uses: actions/checkout@v4
+
+      - name: Cài đặt Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Tải bản build Frontend từ bước CI
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: BusBuss Smart City Tour/dist
+
+      - name: Cài đặt môi trường chạy thử Backend
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Nạp dữ liệu mẫu & Chạy thử hệ thống tích hợp (Backend + Frontend)
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite:///./ci_integration.db
+          KHOA_BI_MAT: ci-integration-secret
+        run: |
+          python -m scripts.nap_du_lieu_mau
+          uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+          SERVER_PID=$!
+          trap "kill $SERVER_PID 2>/dev/null || true" EXIT
+
+          for i in $(seq 1 20); do
+            if curl -sf http://127.0.0.1:8000/api/suc-khoe; then
+              break
+            fi
+            sleep 1
+          done
+
+          echo "=== Kiểm tra API sức khỏe ==="
+          curl -sf http://127.0.0.1:8000/api/suc-khoe
+          echo ""
+          echo "=== Kiểm tra API danh sách ngôn ngữ ==="
+          curl -sf http://127.0.0.1:8000/api/ngon-ngu
+          echo ""
+          echo "=== Kiểm tra API địa điểm ==="
+          curl -sf "http://127.0.0.1:8000/api/diem?ngon_ngu=vi" | head -c 300
+          echo ""
+          echo "=== Kiểm tra API QR ==="
+          curl -sf http://127.0.0.1:8000/api/qr/thong-tin
+          echo ""
+          echo "=== Kiểm tra giao diện Frontend phục vụ qua Backend ==="
+          curl -sf http://127.0.0.1:8000/ | grep -q "<div id=\"root\">"
+          echo "Tích hợp Frontend + Backend hoạt động thành công!"
+
+      - name: Đóng gói artifact hệ thống sẵn sàng chạy
+        uses: actions/upload-artifact@v4
+        with:
+          name: busbuss-release-bundle
+          path: |
+            backend/app
+            backend/scripts
+            backend/tests
+            backend/requirements.txt
+            backend/.env.example
+            BusBuss Smart City Tour/dist
