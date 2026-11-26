@@ -1,0 +1,44 @@
+/* kiểu bổ sung cho phần khách: bản đồ canvas, chọn ngôn ngữ, báo offline, danh sách hội thoại */
+
+.chon-ngon-ngu { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(160deg, var(--navy-2), var(--navy)); }
+.chon-ngon-ngu-hop { width: min(560px, 100%); background: white; border-radius: 24px; padding: 36px 32px; text-align: center; box-shadow: var(--shadow); }
+.chon-ngon-ngu-hop .logo-mark { margin: 0 auto 18px; }
+.chon-ngon-ngu-hop h1 { margin: 0 0 8px; color: var(--navy); font-size: 26px; letter-spacing: -.5px; }
+.chon-ngon-ngu-hop p { margin: 0 0 24px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.chon-ngon-ngu-luoi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.chon-ngon-ngu-luoi button { display: flex; flex-direction: column; gap: 3px; align-items: center; padding: 16px 12px; border: 1.5px solid var(--line); border-radius: 14px; background: white; color: var(--navy); transition: .15s; }
+.chon-ngon-ngu-luoi button strong { font-size: 18px; }
+.chon-ngon-ngu-luoi button small { color: var(--muted); font-size: 11px; letter-spacing: 1px; }
+.chon-ngon-ngu-luoi button:hover, .chon-ngon-ngu-luoi button.goi-y { border-color: var(--orange); background: var(--orange-soft); }
+
+.bang-offline { background: #fff4d6; color: #7a5300; text-align: center; font-size: 13px; padding: 9px 16px; border-bottom: 1px solid #f1dca0; position: relative; z-index: 120; }
+.trang-thai-rong { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 80px 20px; color: var(--muted); text-align: center; }
+.ghi-chu-ngon-ngu { background: var(--orange-soft); color: var(--orange-dark); padding: 10px 14px; border-radius: 10px; font-size: 13px; }
+
+.ban-do-goc { position: absolute; inset: 0; overflow: hidden; touch-action: none; user-select: none; background: #eef1f4; }
+.ban-do-canvas { position: absolute; inset: 0; display: block; }
+.map-demo.map-local::before { display: none; }
+.map-demo.map-local { background: #eef1f4; }
+.ban-do-goc .demo-label { max-width: calc(100% - 90px); z-index: 4; }
+.ban-do-goc .demo-label-gia { top: 60px; background: var(--orange); color: white; }
+.ban-do-ban-quyen { position: absolute; right: 8px; bottom: 6px; z-index: 3; font-size: 10px; color: #5c6b7a; background: rgba(255,255,255,.75); padding: 2px 6px; border-radius: 4px; pointer-events: none; }
+.ban-do-goc .map-marker { z-index: 2; }
+.ban-do-goc .map-marker .radius { border-width: 1.5px; }
+
+.nguoi-dung-diem { position: absolute; z-index: 3; transform: translate(-50%, -50%); pointer-events: none; }
+.nguoi-dung-diem .cham { display: block; width: 18px; height: 18px; border-radius: 50%; background: #2f7df6; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,.35); position: relative; }
+.nguoi-dung-diem .do-chinh-xac { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; background: rgba(47,125,246,.14); border: 1px solid rgba(47,125,246,.35); }
+.nguoi-dung-diem em { position: absolute; left: 50%; top: 24px; transform: translateX(-50%); white-space: nowrap; font-style: normal; font-size: 10px; font-weight: 700; color: white; background: #2f7df6; padding: 3px 7px; border-radius: 5px; }
+
+.che-do-gia { display: flex; align-items: center; gap: 7px; width: 100%; margin: 0 0 14px; padding: 9px 12px; border: 1px dashed var(--line); background: white; color: var(--muted); border-radius: 10px; font-size: 11px; font-weight: 600; }
+.che-do-gia.bat { background: var(--orange); border-color: var(--orange); color: white; border-style: solid; }
+
+.danh-sach-doan { padding: 14px 18px 18px; max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.danh-sach-doan p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--navy); background: #f6f8fb; border-radius: 10px; padding: 10px 12px; }
+.danh-sach-doan p small { display: block; font-size: 10px; font-weight: 700; letter-spacing: .5px; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
+.translation-panel.translated .danh-sach-doan p { background: var(--orange-soft); }
+.danh-sach-doan .dang-xu-ly { color: var(--muted); font-style: italic; background: transparent; padding: 0 4px; }
+
+/* nhãn dài ở các ngôn ngữ như tiếng Nga không được đè lên chữ bên cạnh */
+.language-bar > div > span > small, .language-bar > label > span > small { display: block; white-space: nowrap; }
+.language-bar > div > span > strong { display: block; }
