@@ -7,12 +7,13 @@ import urllib.request
 from app.config import MA_NGON_NGU_MAC_DINH
 
 # mã ngôn ngữ của hệ thống sang mã của dịch vụ dịch
-MA_DICH = {"vi": "vi", "en": "en", "es": "es", "ko": "ko", "zh": "zh-CN", "ru": "ru"}
+MA_DICH = {"vi": "vi", "en": "en", "es": "es", "ko": "ko", "zh": "zh-CN", "ru": "ru","ja": "ja"}
 # mã ngôn ngữ của dịch vụ dự phòng MyMemory
-MA_DICH_DU_PHONG = {"vi": "vi-VN", "en": "en-GB", "es": "es-ES", "ko": "ko-KR", "zh": "zh-CN", "ru": "ru-RU"}
+MA_DICH_DU_PHONG = {"vi": "vi-VN", "en": "en-GB", "es": "es-ES", "ko": "ko-KR", "zh": "zh-CN", "ru": "ru-RU", "ja": "ja-JP"}
 DO_DAI_TOI_DA_DU_PHONG = 450
 
 # dải ký tự đặc trưng giúp nhận ra ngôn ngữ ngay lập tức, không cần gọi dịch vụ ngoài
+_KANA = re.compile(r"[\u3040-\u309f\u30a0-\u30ff]")
 _HANGUL = re.compile(r"[\uac00-\ud7af\u1100-\u11ff\u3130-\u318f]")
 _HAN = re.compile(r"[\u4e00-\u9fff]")
 _CYRILLIC = re.compile(r"[\u0400-\u04ff]")
@@ -61,6 +62,8 @@ def phat_hien_va_dich_gtx(van_ban: str, ma_dich_sang: str, ma_nguon: str = "auto
 def nhan_dien_ngon_ngu_van_ban(van_ban: str) -> str:
     # xác định văn bản thuộc ngôn ngữ nào trong 6 ngôn ngữ của hệ thống
     # ký tự đặc trưng (Hàn, Hán, Cyrillic, dấu tiếng Việt) cho kết quả chắc chắn nên kiểm tra trước
+    if _KANA.search(van_ban):
+        return "ja"
     if _HANGUL.search(van_ban):
         return "ko"
     if _HAN.search(van_ban):

@@ -84,6 +84,6 @@ export type NoiDungNgonNgu = {
 }
 
 export const TEN_NGON_NGU: Record<string, string> = {
-  vi: 'Tiếng Việt', en: 'Tiếng Anh', es: 'Tiếng Tây Ban Nha', ko: 'Tiếng Hàn', zh: 'Tiếng Trung', ru: 'Tiếng Nga', khong_ro: 'Không rõ',
+  vi: 'Tiếng Việt', en: 'Tiếng Anh', es: 'Tiếng Tây Ban Nha', ko: 'Tiếng Hàn', zh: 'Tiếng Trung', ru: 'Tiếng Nga', khong_ro: 'Không rõ', ja: 'Tiếng Nhật'
 }
 export const TEN_THIET_BI: Record<string, string> = { mobile: 'Điện thoại', tablet: 'Máy tính bảng', desktop: 'Máy tính', khac: 'Khác' }

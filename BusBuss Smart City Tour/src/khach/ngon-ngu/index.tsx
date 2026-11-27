@@ -6,8 +6,9 @@ import { ko } from './ko'
 import { ru } from './ru'
 import { vi, type KhoaDich, type TuDien } from './vi'
 import { zh } from './zh'
+import { ja } from './ja'
 
-export type MaNgonNgu = 'vi' | 'en' | 'es' | 'ko' | 'zh' | 'ru'
+export type MaNgonNgu = 'vi' | 'en' | 'es' | 'ko' | 'zh' | 'ru' | 'ja'
 
 // danh sách 6 ngôn ngữ cố định, ten là tên viết bằng chính ngôn ngữ đó, giongDoc dùng cho trình đọc của trình duyệt
 export const DANH_SACH_NGON_NGU: { ma: MaNgonNgu; ten: string; giongDoc: string }[] = [
@@ -17,9 +18,10 @@ export const DANH_SACH_NGON_NGU: { ma: MaNgonNgu; ten: string; giongDoc: string 
   { ma: 'ko', ten: '한국어', giongDoc: 'ko-KR' },
   { ma: 'zh', ten: '中文', giongDoc: 'zh-CN' },
   { ma: 'ru', ten: 'Русский', giongDoc: 'ru-RU' },
+  { ma: 'ja', ten: '日本語', giongDoc: 'ja-JP' },
 ]
 
-const TU_DIEN: Record<MaNgonNgu, TuDien> = { vi: vi as TuDien, en, es, ko, zh, ru }
+const TU_DIEN: Record<MaNgonNgu, TuDien> = { vi: vi as TuDien, en, es, ko, zh, ru, ja }
 const KHOA_LUU = 'busbuss-language'
 
 const laMaHopLe = (v: string | null): v is MaNgonNgu => !!v && v in TU_DIEN

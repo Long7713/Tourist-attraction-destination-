@@ -47,7 +47,7 @@ def test_gio_khach_khong_hop_le_duoc_thay_bang_gio_server():
 
 def test_danh_sach_ngon_ngu_du_6(may_khach):
     ma = [n["ma"] for n in may_khach.get("/api/ngon-ngu").json()]
-    assert ma == ["vi", "en", "es", "ko", "zh", "ru"]
+    assert ma == ["vi", "en", "es", "ko", "zh", "ru", "ja"]
 
 
 def test_diem_theo_ngon_ngu_va_du_phong_tieng_viet(may_khach):
@@ -169,11 +169,11 @@ def test_admin_sua_diem_tang_phien_ban_va_canh_bao_chong_vung(may_khach, tieu_de
 
 
 def test_admin_noi_dung_thieu_ban_dich_va_ban_nhap_khong_hien_cho_khach(may_khach, tieu_de_admin):
-    xoa_noi_dung("ben-thanh", ["es", "ko", "zh", "ru"])
+    xoa_noi_dung("ben-thanh", ["es", "ko", "zh", "ru", "ja"])
     diem_id = next(d["id"] for d in may_khach.get("/api/admin/diem", headers=tieu_de_admin).json()["du_lieu"]
                    if d["slug"] == "ben-thanh")
     xem = may_khach.get(f"/api/admin/diem/{diem_id}/noi-dung", headers=tieu_de_admin).json()
-    assert {n["ma_ngon_ngu"] for n in xem["noi_dung"] if n["thieu"]} == {"es", "ko", "zh", "ru"}
+    assert {n["ma_ngon_ngu"] for n in xem["noi_dung"] if n["thieu"]} == {"es", "ko", "zh", "ru", "ja"}
     luu = may_khach.put(f"/api/admin/diem/{diem_id}/noi-dung/es", headers=tieu_de_admin, json={
         "tieu_de": "Mercado Ben Thanh", "noi_dung": "Un símbolo de la ciudad.", "trang_thai": "nhap"})
     assert luu.status_code == 200
@@ -226,7 +226,7 @@ def test_khong_xoa_duoc_diem_con_noi_dung(may_khach):
     with PhienLamViec() as phien:
         diem = phien.scalar(select(DiemThamQuan).where(DiemThamQuan.slug == "ben-thanh"))
         so_noi_dung = phien.scalar(select(func.count(NoiDungDiem.id)).where(NoiDungDiem.diem_id == diem.id))
-        assert so_noi_dung == 6
+        assert so_noi_dung == 7
         # xóa điểm khi còn nội dung phải bị chặn, kể cả khi xóa bằng lệnh DELETE thẳng vào bảng
         with pytest.raises(IntegrityError):
             phien.execute(delete(DiemThamQuan).where(DiemThamQuan.id == diem.id))
@@ -286,6 +286,8 @@ def test_dich_giong_noi_tu_phat_hien_ngon_ngu_va_dich(may_khach, monkeypatch):
     # ký tự đặc trưng nhận ra ngôn ngữ ngay, cùng ngôn ngữ đích thì giữ nguyên văn bản
     assert dich.nhan_dien_ngon_ngu_van_ban("안녕하세요") == "ko"
     assert dich.nhan_dien_ngon_ngu_van_ban("你好") == "zh"
+    assert dich.nhan_dien_ngon_ngu_van_ban("こんにちは") == "ja"
+    assert dich.nhan_dien_ngon_ngu_van_ban("東京に行きます") == "ja"
     assert dich.nhan_dien_ngon_ngu_van_ban("Привет") == "ru"
     giu_nguyen = may_khach.post("/api/dich-giong-noi", data={"van_ban_goc": "Привет", "ngon_ngu_dich": "ru"}).json()
     assert giu_nguyen == {"ngon_ngu_nguon": "ru", "van_ban_goc": "Привет", "ban_dich": "Привет"}

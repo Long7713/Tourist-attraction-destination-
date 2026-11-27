@@ -41,7 +41,7 @@ export default function LuotTruyCap() {
         <label>Đến ngày<input type="date" value={den} onChange={doiLoc(setDen)} /></label>
         <label>Ngôn ngữ<select value={ngonNgu} onChange={doiLoc(setNgonNgu)}>
           <option value="">Tất cả</option>
-          {['vi', 'en', 'es', 'ko', 'zh', 'ru'].map(m => <option key={m} value={m}>{TEN_NGON_NGU[m]}</option>)}
+          {['vi', 'en', 'es', 'ko', 'zh', 'ru', 'ja'].map(m => <option key={m} value={m}>{TEN_NGON_NGU[m]}</option>)}
         </select></label>
         <Nut onClick={xuatCsv} className="adm-day-phai">Xuất CSV</Nut>
       </div>

@@ -10,9 +10,9 @@ from concurrent.futures import ThreadPoolExecutor
 from app.config import cau_hinh
 
 # 6 ngôn ngữ của hệ thống, giọng nói nhận diện được ngoài danh sách này sẽ bị ép về ngôn ngữ gần nhất trong danh sách
-NGON_NGU_HO_TRO = {"vi", "en", "es", "ko", "zh", "ru"}
+NGON_NGU_HO_TRO = {"vi", "en", "es", "ko", "zh", "ru", "ja"}
 # mã vùng giọng nói của Google Speech API cho từng ngôn ngữ
-MA_GIONG_GOOGLE = {"vi": "vi-VN", "en": "en-US", "es": "es-ES", "ko": "ko-KR", "zh": "zh-CN", "ru": "ru-RU"}
+MA_GIONG_GOOGLE = {"vi": "vi-VN", "en": "en-US", "es": "es-ES", "ko": "ko-KR", "zh": "zh-CN", "ru": "ru-RU", "ja": "ja-JP"}
 URL_GOOGLE_GIONG_NOI = "http://www.google.com/speech-api/v2/recognize"
 
 _mo_hinh = None
@@ -92,7 +92,7 @@ def _nhan_dien_bang_gemini(duong_dan_file: str, khoa: str) -> tuple[str, str]:
                 {
                     "text": (
                         "Transcribe the spoken audio accurately in its original language and detect its language code "
-                        "among: vi, en, es, ko, zh, ru. If the audio is silent or noise, return empty text. "
+                        "among: vi, en, es, ko, zh, ru, ja. If the audio is silent or noise, return empty text. "
                         'Reply ONLY valid JSON: {"ngon_ngu": "<code>", "van_ban": "<transcript>"}'
                     ),
                 },

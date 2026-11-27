@@ -16,6 +16,7 @@ NGON_NGU = [
     ("ko", "한국어", "Tiếng Hàn", "ko-KR", 4, False),
     ("zh", "中文", "Tiếng Trung", "zh-CN", 5, False),
     ("ru", "Русский", "Tiếng Nga", "ru-RU", 6, False),
+    ("ja", "日本語", "Tiếng Nhật", "ja-JP", 7, False),
 ]
 
 # slug, tên nội bộ, vĩ độ, kinh độ, bán kính, thứ tự

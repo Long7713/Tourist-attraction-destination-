@@ -12,6 +12,7 @@ GIONG_DOC = {
     "ko": "ko-KR-SunHiNeural",
     "zh": "zh-CN-XiaoxiaoNeural",
     "ru": "ru-RU-SvetlanaNeural",
+    "ja": "ja-JP-NanamiNeural",
 }
 
 
