@@ -113,6 +113,21 @@ def test_thong_tin_qr_doi_localhost_sang_tunnel_hoac_ip_lan(may_khach, monkeypat
     assert may_khach.get("http://192.168.1.5:8000/api/qr/thong-tin").json()["dia_chi_qr"] == "http://192.168.1.5:8000/?qr=1"
 
 
+def test_dich_giong_noi_nhan_van_ban_tu_trinh_duyet(may_khach, monkeypatch):
+    from app.services import dich
+
+    monkeypatch.setattr(dich, "dich_van_ban", lambda van, dich_sang, nguon: f"[{nguon}>{dich_sang}] {van}")
+    kq = may_khach.post("/api/dich-giong-noi", data={"van_ban_goc": " xin chào ", "ngon_ngu_nguon": "vi", "ngon_ngu_dich": "en"})
+    assert kq.status_code == 200
+    assert kq.json() == {"ngon_ngu_nguon": "vi", "van_ban_goc": "xin chào", "ban_dich": "[vi>en] xin chào"}
+    # cùng ngôn ngữ thì trả nguyên văn, không gọi dịch
+    cung = may_khach.post("/api/dich-giong-noi", data={"van_ban_goc": "hello", "ngon_ngu_nguon": "en", "ngon_ngu_dich": "en"})
+    assert cung.json()["ban_dich"] == "hello"
+    # thiếu ngôn ngữ nguồn, hoặc không gửi gì để dịch thì từ chối
+    assert may_khach.post("/api/dich-giong-noi", data={"van_ban_goc": "hi", "ngon_ngu_dich": "en"}).status_code == 400
+    assert may_khach.post("/api/dich-giong-noi", data={"ngon_ngu_dich": "en"}).status_code == 400
+
+
 def test_api_admin_can_dang_nhap(may_khach):
     assert may_khach.get("/api/admin/dashboard").status_code == 401
     assert may_khach.get("/api/admin/dashboard", headers={"Authorization": "Bearer gia-mao"}).status_code == 401

@@ -93,13 +93,16 @@ export default function DichGiongNoi() {
     }
   }, [])
 
-  // gửi văn bản vừa nhận diện được lên máy chủ để tự phát hiện ngôn ngữ và dịch sang ngôn ngữ người dùng chọn
-  const guiVanBan = useCallback(async (vanBan: string) => {
+  // gửi văn bản vừa nhận diện được lên máy chủ để dịch sang ngôn ngữ người dùng chọn
+  // ngôn ngữ nguồn chính là ngôn ngữ trình duyệt đang nghe (rec.lang, vd vi-VN), đổi về mã hệ thống (vi)
+  const guiVanBan = useCallback(async (vanBan: string, maGiong: string) => {
     const sach = vanBan.trim()
     if (!sach) return
     const maDich = dichRef.current
+    const maNguon = DANH_SACH_NGON_NGU.find(n => n.giongDoc === maGiong)?.ma ?? maGiong.slice(0, 2)
     const form = new FormData()
     form.append('van_ban_goc', sach)
+    form.append('ngon_ngu_nguon', maNguon)
     form.append('ngon_ngu_dich', maDich)
     setDangXuLy(n => n + 1)
     try {
@@ -179,7 +182,7 @@ export default function DichGiongNoi() {
         const chu = ketQua[0]?.transcript ?? ''
         if (ketQua.isFinal) {
           setTamThoi('')
-          void guiVanBan(chu)
+          void guiVanBan(chu, rec.lang)
         } else {
           tam += chu
         }

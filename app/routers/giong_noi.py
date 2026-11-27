@@ -12,10 +12,23 @@ LOAI_AUDIO_CHO_PHEP = {"webm", "ogg", "mp4", "mpeg", "wav", "x-wav", "mp3", "x-m
 
 
 # chức năng phiên dịch giọng nói: nhận đoạn ghi âm, nhận diện ngôn ngữ, chuyển thành chữ và dịch sang ngôn ngữ khách chọn
+# hai cách gửi: chữ trình duyệt đã nhận diện sẵn (Web Speech API) kèm ngôn ngữ nguồn, hoặc file ghi âm để Whisper nhận diện
 @router.post("/dich-giong-noi")
-def dich_giong_noi(file: UploadFile = File(...), ngon_ngu_dich: str = Form(...)):
+def dich_giong_noi(
+    ngon_ngu_dich: str = Form(...),
+    file: UploadFile | None = File(None),
+    van_ban_goc: str | None = Form(None, max_length=2000),
+    ngon_ngu_nguon: str | None = Form(None),
+):
     if ngon_ngu_dich not in dich.MA_DICH:
         raise HTTPException(400, "Ngôn ngữ dịch không được hỗ trợ")
+    if van_ban_goc is not None:
+        if ngon_ngu_nguon not in dich.MA_DICH:
+            raise HTTPException(400, "Thiếu hoặc sai ngôn ngữ nguồn")
+        return _dich_ket_qua(ngon_ngu_nguon, van_ban_goc.strip(), ngon_ngu_dich)
+    if file is None:
+        raise HTTPException(400, "Cần gửi file ghi âm hoặc văn bản")
+
     loai = (file.content_type or "").split("/")[-1].split(";")[0]
     if not (file.content_type or "").startswith(("audio/", "video/webm")) or loai not in LOAI_AUDIO_CHO_PHEP:
         raise HTTPException(415, "Chỉ nhận file ghi âm")
@@ -32,7 +45,10 @@ def dich_giong_noi(file: UploadFile = File(...), ngon_ngu_dich: str = Form(...))
         raise HTTPException(503, f"Chưa nhận diện được giọng nói: {loi}")
     finally:
         os.unlink(tep.name)
+    return _dich_ket_qua(ngon_ngu_nguon, van_ban_goc, ngon_ngu_dich)
 
+
+def _dich_ket_qua(ngon_ngu_nguon: str, van_ban_goc: str, ngon_ngu_dich: str) -> dict:
     if not van_ban_goc:
         return {"ngon_ngu_nguon": None, "van_ban_goc": "", "ban_dich": ""}
     if ngon_ngu_nguon == ngon_ngu_dich:
