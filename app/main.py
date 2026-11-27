@@ -47,3 +47,19 @@ if THU_MUC_GIAO_DIEN_BUILD.exists():
         if duong_dan and tep.is_file() and THU_MUC_GIAO_DIEN_BUILD in tep.resolve().parents:
             return FileResponse(tep, headers=khong_cache)
         return FileResponse(THU_MUC_GIAO_DIEN_BUILD / "index.html", headers=khong_cache)
+
+
+if __name__ == "__main__":
+    # chạy: python -m app.main (chỉ máy này) hoặc python -m app.main lan (cho điện thoại cùng wifi vào)
+    # mặc định 127.0.0.1 vì link 0.0.0.0 uvicorn in ra không mở được trên trình duyệt
+    import sys
+
+    import uvicorn
+
+    from app.services.qr import lay_ip_lan
+
+    sys.stdout.reconfigure(encoding="utf-8")  # console Windows mặc định cp1252, in tiếng Việt sẽ lỗi
+    mo_lan = "lan" in sys.argv[1:]
+    if mo_lan:
+        print(f"Mở trên máy này: http://localhost:8000  |  điện thoại cùng wifi: http://{lay_ip_lan()}:8000", flush=True)
+    uvicorn.run("app.main:app", host="0.0.0.0" if mo_lan else "127.0.0.1", port=8000)

@@ -9,7 +9,7 @@ from app.database import lay_phien_csdl
 from app.models import DiemThamQuan, LichSuNghe, LuotTruyCap, NgonNgu, NoiDungDiem
 from app.schemas import GoiDongBo
 from app.services.phien_ban import tinh_phien_ban
-from app.services.qr import tao_qr_png
+from app.services.qr import lay_dia_chi_tunnel, lay_ip_lan, tao_qr_png
 from app.services.thiet_bi import nhan_dien_loai_thiet_bi
 from app.services.vung import diem_gan_nhat_trong_vung
 from app.thoi_gian import chuan_hoa_gio_khach
@@ -176,3 +176,17 @@ def dong_bo(goi: GoiDongBo, request: Request, phien: Session = Depends(lay_phien
 @router.get("/qr.png")
 def ma_qr_chung(dia_chi: str = Query(min_length=8, max_length=255, pattern=r"^https?://\S+$")):
     return Response(tao_qr_png(dia_chi), media_type="image/png", headers={"Cache-Control": "no-store"})
+
+
+# địa chỉ đưa vào mã QR chung: mở bằng localhost thì ưu tiên tunnel cloudflared, không có thì IP LAN,
+# vì điện thoại không vào được localhost của máy chủ
+@router.get("/qr/thong-tin")
+def thong_tin_qr(request: Request):
+    url = request.url
+    if url.hostname not in ("localhost", "127.0.0.1"):
+        return {"dia_chi_qr": f"{request.base_url}?qr=1", "dia_chi_cong_khai": None, "dang_tao_tunnel": False}
+    tunnel = lay_dia_chi_tunnel()
+    if tunnel:
+        return {"dia_chi_qr": f"{tunnel}/?qr=1", "dia_chi_cong_khai": tunnel, "dang_tao_tunnel": False}
+    cong = f":{url.port}" if url.port else ""
+    return {"dia_chi_qr": f"{url.scheme}://{lay_ip_lan()}{cong}/?qr=1", "dia_chi_cong_khai": None, "dang_tao_tunnel": False}

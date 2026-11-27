@@ -96,6 +96,23 @@ def test_qr_chung_la_anh_png_theo_dia_chi_truyen_vao(may_khach):
         assert may_khach.get("/api/qr.png", params={"dia_chi": sai}).status_code == 422
 
 
+def test_thong_tin_qr_doi_localhost_sang_tunnel_hoac_ip_lan(may_khach, monkeypatch):
+    from app.routers import khach
+
+    monkeypatch.setattr(khach, "lay_dia_chi_tunnel", lambda: "https://abc.trycloudflare.com")
+    kq = may_khach.get("http://localhost:8000/api/qr/thong-tin").json()
+    assert kq["dia_chi_qr"] == "https://abc.trycloudflare.com/?qr=1"
+    assert kq["dia_chi_cong_khai"] == "https://abc.trycloudflare.com"
+
+    # không có tunnel thì dùng IP LAN
+    monkeypatch.setattr(khach, "lay_dia_chi_tunnel", lambda: None)
+    kq = may_khach.get("http://localhost:8000/api/qr/thong-tin").json()
+    assert kq["dang_tao_tunnel"] is False and kq["dia_chi_cong_khai"] is None
+    assert "localhost" not in kq["dia_chi_qr"] and kq["dia_chi_qr"].endswith(":8000/?qr=1")
+    # mở bằng tên miền hay IP khác thì giữ nguyên
+    assert may_khach.get("http://192.168.1.5:8000/api/qr/thong-tin").json()["dia_chi_qr"] == "http://192.168.1.5:8000/?qr=1"
+
+
 def test_api_admin_can_dang_nhap(may_khach):
     assert may_khach.get("/api/admin/dashboard").status_code == 401
     assert may_khach.get("/api/admin/dashboard", headers={"Authorization": "Bearer gia-mao"}).status_code == 401

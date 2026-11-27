@@ -7,8 +7,7 @@ THU_MUC_DU_LIEU = THU_MUC_BACKEND / "du_lieu"
 THU_MUC_AM_THANH = THU_MUC_DU_LIEU / "am_thanh"
 THU_MUC_BAN_DO = THU_MUC_DU_LIEU / "ban_do"
 # thư mục giao diện sau khi build (pnpm build) để backend phục vụ luôn khi triển khai
-THU_MUC_GIAO_DIEN_BUILD = THU_MUC_BACKEND.parent / "BusBuss Smart City Tour" / "dist"
-
+THU_MUC_GIAO_DIEN_BUILD = THU_MUC_BACKEND / "BusBuss Smart City Tour" / "dist"
 # khung giới hạn bản đồ (nam, bắc, tây, đông), cố định trong code vì dữ liệu nền chỉ được xuất cho vùng này
 KHUNG_BAN_DO = {
     "ban_do_vi_do_nam": 10.30, "ban_do_vi_do_bac": 11.20, "ban_do_kinh_do_tay": 106.30, "ban_do_kinh_do_dong": 107.10,
