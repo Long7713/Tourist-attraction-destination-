@@ -1,0 +1,10 @@
+{
+  "description": "Explore Ho Chi Minh City by bus with GPS-triggered multilingual audio tours, landmark guides, and continuous voice translation for international travelers.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
